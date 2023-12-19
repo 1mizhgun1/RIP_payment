@@ -12,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const password = "bf438279f8hnc28497g8fhvbv3682739fhbvc2332f9ch2438bgnv0v348ng0fgg"
+
 func StartServer() {
 	log.Println("Server start up")
 
@@ -32,7 +34,7 @@ func StartServer() {
 		orderID := data.OrderID
 
 		// Запуск горутины для отправки статуса
-		go sendStatus(orderID, fmt.Sprintf("http://localhost:8080/orders/%d/status/", orderID))
+		go sendStatus(orderID, password, fmt.Sprintf("http://localhost:8080/orders/%d/status/", orderID))
 
 		c.JSON(http.StatusOK, gin.H{"message": "Status update initiated"})
 	})
@@ -41,19 +43,19 @@ func StartServer() {
 	log.Println("Server down")
 }
 
-func genRandomStatus() Result {
+func genRandomStatus(password string) Result {
 	time.Sleep(8 * time.Second)
 	status := "A"
 	if rand.Intn(100) < 20 {
 		status = "W"
 	}
-	return Result{status}
+	return Result{status, password}
 }
 
 // Функция для отправки статуса в отдельной горутине
-func sendStatus(orderID int, url string) {
+func sendStatus(orderID int, password string, url string) {
 	// Выполнение расчётов с randomStatus
-	result := genRandomStatus()
+	result := genRandomStatus(password)
 
 	// Отправка PUT-запроса к основному серверу
 	_, err := performPUTRequest(url, result)
@@ -66,7 +68,8 @@ func sendStatus(orderID int, url string) {
 }
 
 type Result struct {
-	Status string `json:"status"`
+	Status   string `json:"status"`
+	Password string `json:"password"`
 }
 
 type PayData struct {
